@@ -59,13 +59,13 @@ class SpringApp:
         return ImageTk.PhotoImage(image)
 
     def create_widgets(self):
-        main_frame = tk.Frame(self.root, bg="#f3f3f3")
+        main_frame = tk.Frame(self.root, bg="#000000")
         main_frame.pack(fill="both", expand=True)
 
         self.left_frame = tk.Frame(main_frame, width=800)
         self.left_frame.pack(side="left", fill="both")
 
-        self.right_frame = tk.Frame(main_frame, bg="#ffffff")
+        self.right_frame = tk.Frame(main_frame, bg="#FFFFFF")
         self.right_frame.pack(side="right", fill="both", expand=True)
 
         self.canvas = tk.Canvas(
@@ -83,14 +83,18 @@ class SpringApp:
         tk.Label(
             control_frame,
             text="Количество грузов:",
-            font=("Arial", 12),
-            bg="white"
+            font=("Times New Roman", 12),
+            bg="white",
+            fg="black"
         ).grid(row=0, column=0, padx=5)
 
         self.weights_entry = tk.Entry(
             control_frame,
             width=10,
-            font=("Arial", 12)
+            font=("Times New Roman", 12),
+            bg="white",
+            fg="black"
+            
         )
         self.weights_entry.insert(0, "0")
         self.weights_entry.grid(row=0, column=1, padx=5)
@@ -98,36 +102,41 @@ class SpringApp:
         tk.Button(
             control_frame,
             text="Принять",
-            font=("Arial", 12),
+            font=("Times New Roman", 12),
+            fg="black",
+            bg="white",
             command=self.accept_weights
         ).grid(row=0, column=2, padx=5)
 
         self.info_label = tk.Label(
             self.left_frame,
             text="Грузов: 0 | Длина пружины: 5.6 см",
-            font=("Arial", 12),
-            bg="white"
+            font=("Times New Roman", 12),
+            bg="white",
+            fg="black"
         )
         self.info_label.pack(pady=5)
 
         tk.Label(
             self.right_frame,
             text="Таблица расчётов",
-            font=("Arial", 18, "bold"),
-            bg="#ffffff"
+            font=("Times New Roman", 18, "bold"),
+            bg="white",
+            fg="black"
         ).pack(pady=20)
 
         self.table_placeholder = tk.Label(
             self.right_frame,
             text="Здесь будут данные опытов:\nмасса, сила, длина, удлинение, k",
-            font=("Arial", 12),
-            bg="#ffffff",
+            font=("Times New Roman", 12),
+            fg="black",
+            bg="white",
             justify="left"
         )
         self.table_placeholder.pack(anchor="nw", padx=30)
 
     def draw_scene(self):
-        self.canvas.delete("all")
+        
 
         spring_height = self.spring_start_height + self.current_stretch
         spring_bottom_y = self.spring_y + spring_height
