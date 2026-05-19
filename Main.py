@@ -91,7 +91,7 @@ class SpringApp:
         versions = {}
         asset_scale = 3
         stretch_by_stiffness = {
-            200: 42 / self.max_weights,
+            200: 40 / self.max_weights,
             300: 30 / self.max_weights,
             400: 22 / self.max_weights,
             500: 17.6 / self.max_weights,
