@@ -3,4 +3,7 @@ __pycache__/
 *.pyc
 build/
 dist/
-build/
+.venv/
+.venv-build/
+release_artifacts/
+*.log

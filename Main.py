@@ -1,10 +1,18 @@
 import tkinter as tk
+import sys
 from dataclasses import dataclass
 from tkinter import messagebox, ttk
 from pathlib import Path
 from PIL import Image, ImageTk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+
+def resource_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS) / relative_path
+
+    return Path(__file__).resolve().parent / relative_path
 
 
 @dataclass(frozen=True)
@@ -33,7 +41,7 @@ class SpringApp:
         self.root.attributes("-fullscreen", True)
         self.root.bind("<Escape>", lambda event: self.root.attributes("-fullscreen", False))
 
-        self.base_dir = Path(__file__).resolve().parent
+        self.base_dir = resource_path("")
 
         self.weight_path = self.base_dir / "pins" / "weight.png"
         self.hook_path = self.base_dir / "pins" / "hook.png"
