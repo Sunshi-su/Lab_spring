@@ -20,10 +20,10 @@ $InnoCompiler = $InnoCandidates | Where-Object { Test-Path $_ } | Select-Object 
 
 if ($InnoCompiler) {
     & $InnoCompiler "packaging\installer\windows\SpringLab.iss"
-    Write-Host "Готово: release_artifacts\windows\SpringLab-Windows-Setup.exe"
+    Write-Host "Done: release_artifacts\windows\SpringLab-Windows-Setup.exe"
 } else {
     Copy-Item "dist\SpringLab.exe" "$ArtifactDir\SpringLab-Windows-Portable.exe" -Force
-    Write-Host "Inno Setup не найден. Создан portable-файл:"
+    Write-Host "Inno Setup was not found. Portable file was created:"
     Write-Host "  release_artifacts\windows\SpringLab-Windows-Portable.exe"
-    Write-Host "Для установщика .exe установите Inno Setup 6 и запустите скрипт ещё раз."
+    Write-Host "To create installer .exe, install Inno Setup 6 and run this script again."
 }
