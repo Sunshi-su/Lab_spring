@@ -30,12 +30,14 @@ class SpringApp:
         self.root = root
         self.root.title("Лабораторная работа: сила упругости")
 
-        self.root.state("zoomed")
+        self.root.attributes("-fullscreen", True)
+        self.root.bind("<Escape>", lambda event: self.root.attributes("-fullscreen", False))
 
         self.base_dir = Path(__file__).resolve().parent
 
         self.weight_path = self.base_dir / "pins" / "weight.png"
         self.hook_path = self.base_dir / "pins" / "hook.png"
+        self.logo_path = self.base_dir / "pins" / "KIP_FIN.png"
 
         self.max_weights = 5
 
@@ -312,6 +314,19 @@ class SpringApp:
 
         content = tk.Frame(panel, bg="#111827")
         content.pack(fill="x", padx=36, pady=12)
+
+        self.header_logo_img = self.load_image(
+            self.logo_path,
+            width=150,
+            height=72
+        )
+
+        tk.Label(
+            content,
+            image=self.header_logo_img,
+            bg="#111827",
+            bd=0
+        ).pack(side="right", anchor="ne", padx=(20, 0))
 
         tk.Label(
             content,
