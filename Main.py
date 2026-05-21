@@ -6,6 +6,7 @@ from pathlib import Path
 from PIL import Image, ImageTk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import webbrowser
 
 
 def resource_path(relative_path):
@@ -46,6 +47,11 @@ class SpringApp:
         self.weight_path = self.base_dir / "pins" / "weight.png"
         self.hook_path = self.base_dir / "pins" / "hook.png"
         self.logo_path = self.base_dir / "pins" / "KIP_FIN.png"
+
+        self.easter_egg_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
+        self.easter_egg_text = "?"
+        self.easter_egg_x = 120
+        self.easter_egg_y = 40
 
         self.max_weights = 5
 
@@ -684,6 +690,36 @@ class SpringApp:
                     image=weight_img,
                     anchor="n"
                 )
+
+        self.draw_easter_egg_link()
+
+    def draw_easter_egg_link(self):
+        link_text = self.canvas.create_text(
+            self.easter_egg_x,
+            self.easter_egg_y,
+            text=self.easter_egg_text,
+            fill="white",
+            font=("Times New Roman", 16, "bold"),
+            anchor="nw"
+        )
+
+        self.canvas.tag_bind(
+            link_text,
+            "<Button-1>",
+            lambda event: webbrowser.open_new_tab(self.easter_egg_url)
+        )
+
+        self.canvas.tag_bind(
+            link_text,
+            "<Enter>",
+            lambda event: self.canvas.config(cursor="hand2")
+        )
+
+        self.canvas.tag_bind(
+            link_text,
+            "<Leave>",
+            lambda event: self.canvas.config(cursor="")
+        )
 
     def accept_weights(self):
         try:
