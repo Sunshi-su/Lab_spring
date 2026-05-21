@@ -8,7 +8,10 @@ a = Analysis(
     [str(project_root / "Main.py")],
     pathex=[str(project_root)],
     binaries=[],
-    datas=[(str(project_root / "pins"), "pins")],
+    datas=[
+        (str(project_root / "pins"), "pins"),
+        (str(project_root / "lab_description.txt"), "."),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

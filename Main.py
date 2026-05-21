@@ -47,11 +47,15 @@ class SpringApp:
         self.weight_path = self.base_dir / "pins" / "weight.png"
         self.hook_path = self.base_dir / "pins" / "hook.png"
         self.logo_path = self.base_dir / "pins" / "KIP_FIN.png"
+        self.description_path = self.base_dir / "lab_description.txt"
 
         self.easter_egg_url = "https://www.youtube.com/watch?v=oHg5SJYRHA0"
         self.easter_egg_text = "?"
         self.easter_egg_x = 120
         self.easter_egg_y = 40
+
+        self.description_icon_x = 70
+        self.description_icon_y = 26
 
         self.max_weights = 5
 
@@ -89,10 +93,10 @@ class SpringApp:
 
         # Координаты установки
         self.clamp_x = 45
-        self.clamp_y = 57
+        self.clamp_y = 102
 
         self.spring_x = 485
-        self.spring_y = 118
+        self.spring_y = 163
 
         # Крючок
         self.hook_x = 485
@@ -179,7 +183,48 @@ class SpringApp:
         return ImageTk.PhotoImage(image)
 
     def create_widgets(self):
-        main_frame = tk.Frame(self.root, bg="#000000")
+        scroll_container = tk.Frame(self.root, bg="#000000")
+        scroll_container.pack(fill="both", expand=True)
+
+        self.page_canvas = tk.Canvas(
+            scroll_container,
+            bg="#000000",
+            highlightthickness=0
+        )
+        self.page_canvas.pack(side="left", fill="both", expand=True)
+
+        page_scrollbar = ttk.Scrollbar(
+            scroll_container,
+            orient="vertical",
+            command=self.page_canvas.yview
+        )
+        page_scrollbar.pack(side="right", fill="y")
+
+        self.page_canvas.configure(yscrollcommand=page_scrollbar.set)
+
+        self.page_frame = tk.Frame(self.page_canvas, bg="#000000")
+        self.page_window = self.page_canvas.create_window(
+            (0, 0),
+            window=self.page_frame,
+            anchor="nw"
+        )
+
+        self.page_frame.bind(
+            "<Configure>",
+            lambda event: self.page_canvas.configure(
+                scrollregion=self.page_canvas.bbox("all")
+            )
+        )
+        self.page_canvas.bind(
+            "<Configure>",
+            lambda event: self.page_canvas.itemconfig(
+                self.page_window,
+                width=event.width
+            )
+        )
+        self.page_canvas.bind_all("<MouseWheel>", self.on_mousewheel)
+
+        main_frame = tk.Frame(self.page_frame, bg="#000000")
         main_frame.pack(fill="both", expand=True)
 
         self.create_stiffness_panel(main_frame)
@@ -193,7 +238,7 @@ class SpringApp:
         self.canvas = tk.Canvas(
             self.left_frame,
             width=700,
-            height=700,
+            height=860,
             bg="white",
             highlightthickness=0
         )
@@ -319,6 +364,53 @@ class SpringApp:
         self.interval_label.pack(anchor="nw", padx=30, pady=10)
 
         self.init_table()
+        self.update_info_label()
+        self.create_footer(self.page_frame)
+
+    def on_mousewheel(self, event):
+        self.page_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    def create_footer(self, parent):
+        footer = tk.Frame(parent, bg="#D1D5DB", height=120)
+        footer.pack(fill="x", side="bottom", pady=(28, 0))
+        footer.pack_propagate(False)
+
+        tk.Label(
+            footer,
+            text="create by Sunshi",
+            font=("Times New Roman", 11, "italic"),
+            bg="#D1D5DB",
+            fg="#9CA3AF"
+        ).place(relx=0.98, rely=0.16, anchor="ne")
+
+        tk.Label(
+            footer,
+            text="email@example.com",
+            font=("Times New Roman", 14, "bold"),
+            bg="#D1D5DB",
+            fg="#374151"
+        ).place(relx=0.5, rely=0.36, anchor="center")
+
+        links_frame = tk.Frame(footer, bg="#D1D5DB")
+        links_frame.place(relx=0.5, rely=0.68, anchor="center")
+
+        footer_links = (
+            ("Ссылка 1", "https://example.com"),
+            ("Ссылка 2", "https://example.com"),
+            ("Ссылка 3", "https://example.com")
+        )
+
+        for text, url in footer_links:
+            label = tk.Label(
+                links_frame,
+                text=text,
+                font=("Times New Roman", 12, "underline"),
+                bg="#D1D5DB",
+                fg="#4B5563",
+                cursor="hand2"
+            )
+            label.pack(side="left", padx=14)
+            label.bind("<Button-1>", lambda event, link=url: webbrowser.open_new_tab(link))
 
     def create_stiffness_panel(self, parent):
         self.stiffness_buttons = {}
@@ -481,12 +573,17 @@ class SpringApp:
     def update_info_label(self):
         version = self.active_spring_version
         length_cm = version.l0_cm + (self.current_weight_count * version.cm_per_weight)
+        force_n = self.calculate_force(self.current_weight_count)
         self.info_label.config(
             text=(
                 f"Грузов: {self.current_weight_count} | "
-                f"Длина пружины: {length_cm:.1f} см"
+                f"Длина пружины: {length_cm:.1f} см | "
+                f"F = {force_n:.2f} Н"
             )
         )
+
+    def calculate_force(self, weight_count):
+        return weight_count * self.mass_per_weight * self.g
 
     def init_table(self):
         self.table.delete(*self.table.get_children())
@@ -517,7 +614,7 @@ class SpringApp:
         m = count * self.mass_per_weight
 
         # Сила упругости: F = mg
-        mg = m * self.g
+        mg = self.calculate_force(count)
 
         # Удлинение пружины
         x_cm = count * self.active_spring_version.cm_per_weight
@@ -645,6 +742,8 @@ class SpringApp:
             anchor="nw"
         )
 
+        self.draw_description_icon()
+
         self.spring_img = self.load_image(
             self.spring_path,
             width=version.spring_width,
@@ -692,6 +791,48 @@ class SpringApp:
                 )
 
         self.draw_easter_egg_link()
+
+    def draw_description_icon(self):
+        icon_bg = self.canvas.create_oval(
+            self.description_icon_x,
+            self.description_icon_y,
+            self.description_icon_x + 34,
+            self.description_icon_y + 34,
+            fill="white",
+            outline="#111827",
+            width=2
+        )
+        icon_text = self.canvas.create_text(
+            self.description_icon_x + 17,
+            self.description_icon_y + 17,
+            text="i",
+            fill="#111827",
+            font=("Times New Roman", 18, "bold")
+        )
+
+        for item in (icon_bg, icon_text):
+            self.canvas.tag_bind(item, "<Button-1>", self.show_lab_description)
+            self.canvas.tag_bind(
+                item,
+                "<Enter>",
+                lambda event: self.canvas.config(cursor="hand2")
+            )
+            self.canvas.tag_bind(
+                item,
+                "<Leave>",
+                lambda event: self.canvas.config(cursor="")
+            )
+
+    def show_lab_description(self, event=None):
+        try:
+            description = self.description_path.read_text(encoding="utf-8").strip()
+        except FileNotFoundError:
+            description = "Файл lab_description.txt не найден."
+
+        if not description:
+            description = "Описание работы пока не заполнено."
+
+        messagebox.showinfo("Описание лабораторной работы", description)
 
     def draw_easter_egg_link(self):
         link_text = self.canvas.create_text(
