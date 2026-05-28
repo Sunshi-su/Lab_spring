@@ -54,9 +54,6 @@ class SpringApp:
         self.easter_egg_x = 120
         self.easter_egg_y = 40
 
-        self.description_icon_x = 70
-        self.description_icon_y = 26
-
         self.max_weights = 5
 
         # Масштаб изображения: 1 см = 22 px
@@ -93,10 +90,10 @@ class SpringApp:
 
         # Координаты установки
         self.clamp_x = 45
-        self.clamp_y = 102
+        self.clamp_y = 57
 
         self.spring_x = 485
-        self.spring_y = 163
+        self.spring_y = 118
 
         # Крючок
         self.hook_x = 485
@@ -238,7 +235,7 @@ class SpringApp:
         self.canvas = tk.Canvas(
             self.left_frame,
             width=700,
-            height=860,
+            height=640,
             bg="white",
             highlightthickness=0
         )
@@ -255,15 +252,40 @@ class SpringApp:
             fg="black"
         ).grid(row=0, column=0, padx=5)
 
+        tk.Button(
+            control_frame,
+            text="−",
+            width=1,
+            font=("Times New Roman", 14, "bold"),
+            fg="black",
+            bg="#4FAADF",
+            activeforeground="white",
+            activebackground="#1C7FB6",
+            command=lambda: self.change_weight_count(-1)
+        ).grid(row=0, column=1, padx=(5, 0))
+
         self.weights_entry = tk.Entry(
             control_frame,
-            width=10,
+            width=5,
             font=("Times New Roman", 12),
             bg="white",
-            fg="black"
+            fg="black",
+            justify="center"
         )
         self.weights_entry.insert(0, "0")
-        self.weights_entry.grid(row=0, column=1, padx=5)
+        self.weights_entry.grid(row=0, column=2, padx=0)
+
+        tk.Button(
+            control_frame,
+            text="+",
+            width=1,
+            font=("Times New Roman", 14, "bold"),
+            fg="black",
+            bg="#2D9CDB",
+            activeforeground="white",
+            activebackground="#1C7FB6",
+            command=lambda: self.change_weight_count(1)
+        ).grid(row=0, column=3, padx=(0, 5))
 
         tk.Button(
             control_frame,
@@ -272,7 +294,7 @@ class SpringApp:
             fg="black",
             bg="white",
             command=self.accept_weights
-        ).grid(row=0, column=2, padx=5)
+        ).grid(row=0, column=4, padx=5)
 
         self.info_label = tk.Label(
             self.left_frame,
@@ -283,13 +305,32 @@ class SpringApp:
         )
         self.info_label.pack(pady=5)
 
+        table_title_frame = tk.Frame(self.right_frame, bg="white")
+        table_title_frame.pack(fill="x", pady=20)
+
         tk.Label(
-            self.right_frame,
+            table_title_frame,
             text="Таблица расчётов",
             font=("Times New Roman", 18, "bold"),
             bg="white",
             fg="black"
-        ).pack(pady=20)
+        ).pack(side="left", expand=True, padx=(64, 0))
+
+        self.description_button = tk.Button(
+            table_title_frame,
+            text="i",
+            width=1,
+            font=("Times New Roman", 14, "bold"),
+            fg="#111827",
+            bg="white",
+            activeforeground="#111827",
+            activebackground="#FFFFFF",
+            relief="solid",
+            bd=1,
+            cursor="hand2",
+            command=self.show_lab_description
+        )
+        self.description_button.pack(side="right", padx=(0, 30))
 
         columns = (
             "num", "m", "mg", "l", "x", "k", "k_avg", "eps", "delta"
@@ -318,12 +359,12 @@ class SpringApp:
             "num": 40,
             "m": 80,
             "mg": 90,
-            "l": 90,
-            "x": 90,
-            "k": 90,
-            "k_avg": 100,
+            "l": 80,
+            "x": 80,
+            "k": 80,
+            "k_avg": 70,
             "eps": 70,
-            "delta": 110
+            "delta": 70
         }
 
         for col in columns:
@@ -385,7 +426,7 @@ class SpringApp:
 
         tk.Label(
             footer,
-            text="email@example.com",
+            text="abebussherbakova@yandex.ru",
             font=("Times New Roman", 14, "bold"),
             bg="#D1D5DB",
             fg="#374151"
@@ -395,9 +436,8 @@ class SpringApp:
         links_frame.place(relx=0.5, rely=0.68, anchor="center")
 
         footer_links = (
-            ("Ссылка 1", "https://example.com"),
-            ("Ссылка 2", "https://example.com"),
-            ("Ссылка 3", "https://example.com")
+            ("КИПФИН", "https://kip.fa.ru"),
+            ("Релиз GitHub", "https://github.com/Sunshi-su/Lab_spring/releases/tag/v1.0.0")
         )
 
         for text, url in footer_links:
@@ -742,8 +782,6 @@ class SpringApp:
             anchor="nw"
         )
 
-        self.draw_description_icon()
-
         self.spring_img = self.load_image(
             self.spring_path,
             width=version.spring_width,
@@ -792,37 +830,6 @@ class SpringApp:
 
         self.draw_easter_egg_link()
 
-    def draw_description_icon(self):
-        icon_bg = self.canvas.create_oval(
-            self.description_icon_x,
-            self.description_icon_y,
-            self.description_icon_x + 34,
-            self.description_icon_y + 34,
-            fill="white",
-            outline="#111827",
-            width=2
-        )
-        icon_text = self.canvas.create_text(
-            self.description_icon_x + 17,
-            self.description_icon_y + 17,
-            text="i",
-            fill="#111827",
-            font=("Times New Roman", 18, "bold")
-        )
-
-        for item in (icon_bg, icon_text):
-            self.canvas.tag_bind(item, "<Button-1>", self.show_lab_description)
-            self.canvas.tag_bind(
-                item,
-                "<Enter>",
-                lambda event: self.canvas.config(cursor="hand2")
-            )
-            self.canvas.tag_bind(
-                item,
-                "<Leave>",
-                lambda event: self.canvas.config(cursor="")
-            )
-
     def show_lab_description(self, event=None):
         try:
             description = self.description_path.read_text(encoding="utf-8").strip()
@@ -861,6 +868,27 @@ class SpringApp:
             "<Leave>",
             lambda event: self.canvas.config(cursor="")
         )
+
+    def get_weight_entry_value(self):
+        try:
+            return int(self.weights_entry.get())
+        except ValueError:
+            return 0
+
+    def set_weight_entry_value(self, count):
+        count = max(0, min(self.max_weights, count))
+        self.weights_entry.delete(0, tk.END)
+        self.weights_entry.insert(0, str(count))
+        return count
+
+    def change_weight_count(self, delta):
+        current_count = self.get_weight_entry_value()
+        new_count = self.set_weight_entry_value(current_count + delta)
+
+        if new_count == self.current_weight_count and self.show_weights:
+            return
+
+        self.accept_weights()
 
     def accept_weights(self):
         try:
