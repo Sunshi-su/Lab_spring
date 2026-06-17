@@ -129,7 +129,7 @@
 
         .scene {
             position: relative;
-            height: 850px;
+            height: 640px;
             overflow: hidden;
             background: #ffffff;
         }
@@ -142,7 +142,7 @@
         .scene-clamp {
             position: absolute;
             left: 45px;
-            top: 35px;
+            top: 57px;
             width: 519px;
             height: 801px;
             object-fit: fill;
@@ -152,7 +152,7 @@
         .scene-spring {
             position: absolute;
             left: 485px;
-            top: 96px;
+            top: 118px;
             transform: translateX(-50%);
             z-index: 2;
             transition: height 120ms linear;
@@ -311,7 +311,6 @@
         }
 
         .graph-section {
-            margin-top: 290px;
             padding: 16px 18px 0;
         }
 
@@ -581,7 +580,7 @@ k = mg / x
     const EPSILON_K = 0.08;
 
     const SPRING_X = 485;
-    const SPRING_Y = 96;
+    const SPRING_Y = 118;
     const HOOK_X = 485;
     const WEIGHT_X = 483;
     const WEIGHT_OFFSET_Y = 125;
@@ -782,22 +781,115 @@ k = mg / x
         }
     }
 
-    function clearGraph() {
+    function graphBounds() {
+        const lMin = springData().l0Cm / 100;
+        const lMax = springData().l5Cm / 100;
+        const padding = Math.max(0.001, (lMax - lMin) * 0.15);
+
+        return {
+            xMin: lMin - padding,
+            xMax: lMax + padding,
+            yMin: 0,
+            yMax: 4.2
+        };
+    }
+
+    function drawGraphBase() {
+        const bounds = graphBounds();
+        const left = 62;
+        const top = 34;
+        const width = graphCanvas.width - 102;
+        const height = graphCanvas.height - 86;
+        const xTicks = 5;
+        const yTicks = 5;
+
         graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
         graphCtx.fillStyle = "#ffffff";
         graphCtx.fillRect(0, 0, graphCanvas.width, graphCanvas.height);
-        graphCtx.strokeStyle = "#d1d5db";
-        graphCtx.lineWidth = 1;
-        graphCtx.strokeRect(50, 25, graphCanvas.width - 80, graphCanvas.height - 70);
+
         graphCtx.fillStyle = "#111827";
-        graphCtx.font = "16px Times New Roman";
-        graphCtx.fillText("График зависимости Fупр = f(l)", 250, 20);
+        graphCtx.font = "17px Times New Roman";
+        graphCtx.textAlign = "center";
+        graphCtx.fillText("График зависимости Fупр = f(l)", graphCanvas.width / 2, 20);
+
+        graphCtx.strokeStyle = "#e5e7eb";
+        graphCtx.lineWidth = 1;
+        graphCtx.fillStyle = "#374151";
+        graphCtx.font = "13px Times New Roman";
+
+        for (let i = 0; i <= xTicks; i += 1) {
+            const ratio = i / xTicks;
+            const x = left + ratio * width;
+            const value = bounds.xMin + ratio * (bounds.xMax - bounds.xMin);
+
+            graphCtx.beginPath();
+            graphCtx.moveTo(x, top);
+            graphCtx.lineTo(x, top + height);
+            graphCtx.stroke();
+
+            graphCtx.strokeStyle = "#111827";
+            graphCtx.beginPath();
+            graphCtx.moveTo(x, top + height);
+            graphCtx.lineTo(x, top + height + 5);
+            graphCtx.stroke();
+            graphCtx.strokeStyle = "#e5e7eb";
+
+            graphCtx.textAlign = "center";
+            graphCtx.fillText(value.toFixed(3), x, top + height + 22);
+        }
+
+        for (let i = 0; i <= yTicks; i += 1) {
+            const ratio = i / yTicks;
+            const y = top + height - ratio * height;
+            const value = bounds.yMin + ratio * (bounds.yMax - bounds.yMin);
+
+            graphCtx.beginPath();
+            graphCtx.moveTo(left, y);
+            graphCtx.lineTo(left + width, y);
+            graphCtx.stroke();
+
+            graphCtx.strokeStyle = "#111827";
+            graphCtx.beginPath();
+            graphCtx.moveTo(left - 5, y);
+            graphCtx.lineTo(left, y);
+            graphCtx.stroke();
+            graphCtx.strokeStyle = "#e5e7eb";
+
+            graphCtx.textAlign = "right";
+            graphCtx.fillText(value.toFixed(1), left - 10, y + 4);
+        }
+
+        graphCtx.strokeStyle = "#111827";
+        graphCtx.lineWidth = 1.3;
+        graphCtx.strokeRect(left, top, width, height);
+
+        graphCtx.fillStyle = "#111827";
+        graphCtx.font = "15px Times New Roman";
+        graphCtx.textAlign = "center";
         graphCtx.fillText("l, м", graphCanvas.width - 40, graphCanvas.height - 36);
         graphCtx.save();
         graphCtx.translate(18, 145);
         graphCtx.rotate(-Math.PI / 2);
         graphCtx.fillText("Fупр, Н", 0, 0);
         graphCtx.restore();
+
+        return {
+            left,
+            top,
+            width,
+            height,
+            bounds,
+            xScale(value) {
+                return left + ((value - bounds.xMin) / (bounds.xMax - bounds.xMin || 1)) * width;
+            },
+            yScale(value) {
+                return top + height - ((value - bounds.yMin) / (bounds.yMax - bounds.yMin || 1)) * height;
+            }
+        };
+    }
+
+    function clearGraph() {
+        drawGraphBase();
     }
 
     function buildGraph() {
@@ -807,29 +899,14 @@ k = mg / x
             return;
         }
 
-        clearGraph();
-        const left = 50;
-        const top = 25;
-        const width = graphCanvas.width - 80;
-        const height = graphCanvas.height - 70;
-        const lMin = Math.min(...points.map((point) => point.l));
-        const lMax = Math.max(...points.map((point) => point.l));
-        const fMax = Math.max(...points.map((point) => point.mg)) * 1.12;
-
-        function xScale(value) {
-            return left + ((value - lMin) / (lMax - lMin || 1)) * width;
-        }
-
-        function yScale(value) {
-            return top + height - (value / fMax) * height;
-        }
+        const graph = drawGraphBase();
 
         graphCtx.strokeStyle = "#2563eb";
         graphCtx.lineWidth = 2;
         graphCtx.beginPath();
         points.forEach((point, index) => {
-            const x = xScale(point.l);
-            const y = yScale(point.mg);
+            const x = graph.xScale(point.l);
+            const y = graph.yScale(point.mg);
             if (index === 0) graphCtx.moveTo(x, y);
             else graphCtx.lineTo(x, y);
         });
@@ -838,7 +915,7 @@ k = mg / x
         graphCtx.fillStyle = "#a11a05";
         points.forEach((point) => {
             graphCtx.beginPath();
-            graphCtx.arc(xScale(point.l), yScale(point.mg), 5, 0, Math.PI * 2);
+            graphCtx.arc(graph.xScale(point.l), graph.yScale(point.mg), 5, 0, Math.PI * 2);
             graphCtx.fill();
         });
 
