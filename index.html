@@ -155,7 +155,7 @@
             top: 118px;
             transform: translateX(-50%);
             z-index: 2;
-            transition: height 120ms linear;
+            transition: height 2s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .scene-hook {
@@ -164,7 +164,7 @@
             height: 131px;
             transform: translateX(-50%);
             z-index: 3;
-            transition: top 120ms linear;
+            transition: top 2s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .scene-weight {
@@ -173,7 +173,7 @@
             height: 48px;
             transform: translateX(-50%);
             z-index: 4;
-            transition: top 120ms linear;
+            transition: top 2s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         .easter {
@@ -581,7 +581,8 @@ k = mg / x
 
     const SPRING_X = 485;
     const SPRING_Y = 118;
-    const HOOK_X = 485;
+    const HOOK_X_OFFSET = 0.8;
+    const HOOK_X = SPRING_X + HOOK_X_OFFSET;
     const WEIGHT_X = 483;
     const WEIGHT_OFFSET_Y = 125;
     const WEIGHT_SPACING = 42;
