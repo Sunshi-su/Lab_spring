@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабораторная работа: сила упругости</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f3f4f6;
+            color: #111827;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 12px 28px;
+            background: #111827;
+            color: #f9fafb;
+            min-height: 92px;
+        }
+
+        .stiffness-title {
+            font-size: 22px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .stiffness-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stiffness-btn {
+            min-width: 92px;
+            padding: 8px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            background: #f8fafc;
+            color: #111827;
+            cursor: pointer;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stiffness-btn small {
+            display: block;
+            margin-top: 2px;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .stiffness-btn.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #ffffff;
+        }
+
+        .stiffness-btn.active small {
+            color: #e0ecff;
+        }
+
+        .apply-btn {
+            padding: 14px 30px;
+            border: 0;
+            border-radius: 7px;
+            background: #a11a05;
+            color: #ffffff;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .current-stiffness {
+            padding: 14px 20px;
+            border-radius: 7px;
+            background: #f8fafc;
+            color: #111827;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+            margin-left: auto;
+            object-fit: contain;
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: minmax(620px, 0.95fr) minmax(560px, 1fr);
+            gap: 24px;
+            padding: 20px 24px 30px;
+            flex: 1;
+            background: #ffffff;
+        }
+
+        .left,
+        .right {
+            min-width: 0;
+        }
+
+        .left {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .scene {
+            position: relative;
+            height: 850px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .scene img {
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .scene-clamp {
+            position: absolute;
+            left: 45px;
+            top: 35px;
+            width: 519px;
+            height: 801px;
+            object-fit: fill;
+            z-index: 1;
+        }
+
+        .scene-spring {
+            position: absolute;
+            left: 485px;
+            top: 96px;
+            transform: translateX(-50%);
+            z-index: 2;
+            transition: height 120ms linear;
+        }
+
+        .scene-hook {
+            position: absolute;
+            width: 13px;
+            height: 131px;
+            transform: translateX(-50%);
+            z-index: 3;
+            transition: top 120ms linear;
+        }
+
+        .scene-weight {
+            position: absolute;
+            width: 66px;
+            height: 48px;
+            transform: translateX(-50%);
+            z-index: 4;
+            transition: top 120ms linear;
+        }
+
+        .easter {
+            position: absolute;
+            left: 120px;
+            top: 40px;
+            z-index: 6;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 10px 4px;
+            background: #ffffff;
+        }
+
+        .controls-label {
+            font-family: "Times New Roman", serif;
+            font-size: 18px;
+        }
+
+        .stepper {
+            display: inline-grid;
+            grid-template-columns: 42px 58px 42px;
+            height: 42px;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .stepper button {
+            border: 0;
+            background: #2d9cdb;
+            color: #ffffff;
+            font-size: 26px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .stepper input {
+            width: 58px;
+            border: 0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #111827;
+            outline: none;
+        }
+
+        .accept-btn,
+        .graph-btn {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #111827;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: "Times New Roman", serif;
+            font-size: 18px;
+        }
+
+        .status {
+            text-align: center;
+            padding: 4px 10px 10px;
+            font-family: "Times New Roman", serif;
+            font-size: 18px;
+        }
+
+        .right {
+            background: #ffffff;
+            padding-top: 8px;
+        }
+
+        .title-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin: 8px 0 18px;
+        }
+
+        .title-row h2 {
+            font-family: "Times New Roman", serif;
+            font-size: 28px;
+        }
+
+        .info-btn {
+            width: 34px;
+            height: 34px;
+            border: 1px solid #111827;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #111827;
+            font-family: "Times New Roman", serif;
+            font-size: 22px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            padding: 0 14px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: "Times New Roman", serif;
+            font-size: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #d1d5db;
+            padding: 8px 6px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #f3f4f6;
+            font-weight: 800;
+        }
+
+        tr.active-row td {
+            background: #e0ecff;
+        }
+
+        .graph-section {
+            margin-top: 290px;
+            padding: 16px 18px 0;
+        }
+
+        #graphCanvas {
+            display: block;
+            width: 100%;
+            max-width: 760px;
+            height: 280px;
+            margin: 0 auto;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+        }
+
+        .graph-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .interval {
+            margin: 14px 30px 0;
+            font-family: "Times New Roman", serif;
+            font-size: 18px;
+            white-space: pre-line;
+        }
+
+        .footer {
+            position: relative;
+            min-height: 118px;
+            margin-top: 28px;
+            background: #d1d5db;
+            color: #374151;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 26px 24px;
+        }
+
+        .creator {
+            position: absolute;
+            right: 24px;
+            top: 14px;
+            color: rgba(55, 65, 81, 0.42);
+            font-style: italic;
+        }
+
+        .email {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #4b5563;
+            text-decoration: underline;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(17, 24, 39, 0.45);
+            z-index: 50;
+        }
+
+        .modal {
+            width: min(680px, 100%);
+            max-height: 80vh;
+            overflow: auto;
+            border-radius: 10px;
+            background: #ffffff;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+            padding: 22px;
+        }
+
+        .modal h3 {
+            margin-bottom: 12px;
+            font-size: 24px;
+        }
+
+        .modal p {
+            white-space: pre-line;
+            line-height: 1.5;
+            font-size: 16px;
+        }
+
+        .modal-close {
+            display: block;
+            margin: 18px 0 0 auto;
+            padding: 9px 18px;
+            border: 0;
+            border-radius: 6px;
+            background: #111827;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1180px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+            .logo {
+                width: 120px;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .topbar,
+            .controls {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .main {
+                padding: 12px;
+            }
+
+            .scene {
+                transform-origin: top left;
+                overflow: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <header class="topbar">
+        <div class="stiffness-title">Выбор жёсткости:</div>
+        <div class="stiffness-buttons" id="stiffnessButtons"></div>
+        <button class="apply-btn" id="applyStiffnessBtn">Применить</button>
+        <div class="current-stiffness" id="currentStiffnessLabel">Текущее значение: 400 Н/м</div>
+        <img class="logo" src="pins/KIP_FIN.png" alt="КИПФИН">
+    </header>
+
+    <main class="main">
+        <section class="left">
+            <div class="scene" id="scene">
+                <img class="scene-clamp" id="clampImg" src="pins/clamp400.png" alt="">
+                <img class="scene-spring" id="springImg" src="pins/spring400.png" alt="">
+                <img class="scene-hook" id="hookImg" src="pins/hook.png" alt="">
+                <a class="easter" href="https://www.youtube.com/watch?v=oHg5SJYRHA0" target="_blank" rel="noreferrer">?</a>
+            </div>
+
+            <div class="controls">
+                <span class="controls-label">Количество грузов:</span>
+                <div class="stepper">
+                    <button id="minusBtn" type="button">−</button>
+                    <input id="weightInput" type="number" min="0" max="5" value="0">
+                    <button id="plusBtn" type="button">+</button>
+                </div>
+                <button class="accept-btn" id="acceptBtn" type="button">Принять</button>
+            </div>
+            <div class="status" id="statusText">Грузов: 0 | Длина пружины: 5.6 см | F = 0.00 Н</div>
+        </section>
+
+        <section class="right">
+            <div class="title-row">
+                <h2>Таблица расчётов</h2>
+                <button class="info-btn" id="infoBtn" type="button" title="Описание лабораторной работы">i</button>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>№ опыта</th>
+                        <th>m, кг</th>
+                        <th>mg, Н</th>
+                        <th>l, м</th>
+                        <th>x, м</th>
+                        <th>K, Н/м</th>
+                        <th>kср, Н/м</th>
+                        <th>εk</th>
+                        <th>Δkср, Н/м</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="graph-section">
+                <canvas id="graphCanvas" width="760" height="280"></canvas>
+                <div class="graph-actions">
+                    <button class="graph-btn" id="buildGraphBtn" type="button">Построить график</button>
+                </div>
+                <div class="interval" id="intervalText">Доверительный интервал для k:
+Появится после проведения всех 5 испытаний и построения графика.
+
+Результат: k = kср ± Δkср</div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="creator">create by Sunshi</div>
+        <div class="email">abebussherbakova@yandex.ru</div>
+        <nav class="footer-links">
+            <a href="https://kip.fa.ru" target="_blank" rel="noreferrer">КИПФИН</a>
+            <a href="https://github.com/Sunshi-su/Lab_spring/releases/tag/v1.0.0" target="_blank" rel="noreferrer">Релиз GitHub</a>
+            <a href="https://example.com" target="_blank" rel="noreferrer">Ссылка 3</a>
+        </nav>
+    </footer>
+</div>
+
+<div class="modal-backdrop" id="descriptionModal">
+    <div class="modal">
+        <h3>Описание лабораторной работы</h3>
+        <p id="descriptionText">Лабораторная работа №5
+ОПРЕДЕЛЕНИЕ ЖЁСТКОСТИ ПРУЖИНЫ.
+
+Цель работы:
+1 Найти жёсткость пружины путём измерения удлинения пружины и силы,
+растягивающей пружину (веса грузов).
+2 Построить график зависимости модуля силы упругости пружины от её длины под
+
+Приборы и материалы: штатив с муфтой и лапкой; пружина; набор грузов; линейка.
+
+Теория
+Деформация — это изменение формы и размеров тела (или части тела) под
+действием внешних сил. Деформация упругая - если тело стремится вернуть свою форму
+и размер в изначальное состояние; деформация неупругая, когда тело не может вернуться
+
+При деформации возникает сила упругости— это та сила, которая стремится вернуть тело
+в исходное состояние, в котором оно было до деформации.
+
+Сила упругости, возникающая при упругой деформации растяжения или сжатия тела,
+пропорциональна абсолютному значению изменения длины тела. Выражение,
+описывающее эту закономерность, называется законом Гука.
+
+Fупр — сила упругости [Н]
+к — коэффициент жесткости [Н/м]
+х — изменение длины (деформация) [м]
+
+При подвешивании груза к пружине, сила упругости уравновешивает силу тяжести:
+Fт = Fупр или mg = kx
+
+Рабочие формулы:
+
+х = l – l0
+k = mg / x
+
+εk = εm + εg + εx, где относительные погрешности εm, εg, εx заданы:
+εm = Δm/m = 2 г/100 г = 0,02;
+εg = Δg/g = 0,1 м/с2/9.8 м/с2 = 0,01;
+εx = Δх/х = 2 мм/40 мм = 0,05
+
+Δkср = εк ∙ kср</p>
+        <button class="modal-close" id="modalCloseBtn" type="button">Закрыть</button>
+    </div>
+</div>
+
+<script>
+    const G = 9.8;
+    const MASS_PER_WEIGHT = 0.08;
+    const MAX_WEIGHTS = 5;
+    const EPSILON_K = 0.08;
+
+    const SPRING_X = 485;
+    const SPRING_Y = 96;
+    const HOOK_X = 485;
+    const WEIGHT_X = 483;
+    const WEIGHT_OFFSET_Y = 125;
+    const WEIGHT_SPACING = 42;
+
+    const SPRINGS = {
+        200: { l0Cm: 6.6, l5Cm: 8.6, stretch5Px: 40, springWidth: 28, springHeight: 127 },
+        300: { l0Cm: 6.0, l5Cm: 7.4, stretch5Px: 30, springWidth: 32, springHeight: 117 },
+        400: { l0Cm: 5.6, l5Cm: 6.6, stretch5Px: 22, springWidth: 38, springHeight: 107 },
+        500: { l0Cm: 5.0, l5Cm: 5.8, stretch5Px: 17.6, springWidth: 44, springHeight: 97 },
+        600: { l0Cm: 4.5, l5Cm: 5.2, stretch5Px: 14.7, springWidth: 50, springHeight: 87 }
+    };
+
+    let selectedStiffness = 400;
+    let appliedStiffness = 400;
+    let currentWeightCount = 0;
+    let experiments = {};
+
+    const stiffnessButtons = document.getElementById("stiffnessButtons");
+    const currentStiffnessLabel = document.getElementById("currentStiffnessLabel");
+    const applyStiffnessBtn = document.getElementById("applyStiffnessBtn");
+    const scene = document.getElementById("scene");
+    const clampImg = document.getElementById("clampImg");
+    const springImg = document.getElementById("springImg");
+    const hookImg = document.getElementById("hookImg");
+    const weightInput = document.getElementById("weightInput");
+    const statusText = document.getElementById("statusText");
+    const tableBody = document.getElementById("tableBody");
+    const graphCanvas = document.getElementById("graphCanvas");
+    const graphCtx = graphCanvas.getContext("2d");
+    const intervalText = document.getElementById("intervalText");
+    const modal = document.getElementById("descriptionModal");
+    const descriptionText = document.getElementById("descriptionText");
+
+    function springData() {
+        return SPRINGS[appliedStiffness];
+    }
+
+    function cmPerWeight() {
+        const data = springData();
+        return (data.l5Cm - data.l0Cm) / MAX_WEIGHTS;
+    }
+
+    function stretchPx() {
+        return (springData().stretch5Px / MAX_WEIGHTS) * currentWeightCount;
+    }
+
+    function lengthCm(count) {
+        return springData().l0Cm + count * cmPerWeight();
+    }
+
+    function stretchCm(count) {
+        return count * cmPerWeight();
+    }
+
+    function forceN(count) {
+        return count * MASS_PER_WEIGHT * G;
+    }
+
+    function clampCount(value) {
+        const parsed = Number.parseInt(value, 10);
+        if (Number.isNaN(parsed)) return 0;
+        return Math.max(0, Math.min(MAX_WEIGHTS, parsed));
+    }
+
+    function setWeightInput(count) {
+        weightInput.value = String(clampCount(count));
+    }
+
+    function buildStiffnessButtons() {
+        stiffnessButtons.innerHTML = "";
+        Object.keys(SPRINGS).forEach((key) => {
+            const stiffness = Number(key);
+            const button = document.createElement("button");
+            button.className = "stiffness-btn" + (stiffness === selectedStiffness ? " active" : "");
+            button.dataset.stiffness = String(stiffness);
+            button.innerHTML = `${stiffness}<small>Н/м</small>`;
+            button.addEventListener("click", () => {
+                selectedStiffness = stiffness;
+                document.querySelectorAll(".stiffness-btn").forEach((item) => item.classList.remove("active"));
+                button.classList.add("active");
+            });
+            stiffnessButtons.appendChild(button);
+        });
+    }
+
+    function applyStiffness() {
+        if (selectedStiffness === appliedStiffness) return;
+
+        if (Object.keys(experiments).length > 0) {
+            const confirmed = window.confirm("В таблице уже есть проведённые опыты. При смене жёсткости текущие данные будут очищены. Продолжить?");
+            if (!confirmed) {
+                selectedStiffness = appliedStiffness;
+                buildStiffnessButtons();
+                return;
+            }
+        }
+
+        appliedStiffness = selectedStiffness;
+        currentStiffnessLabel.textContent = `Текущее значение: ${appliedStiffness} Н/м`;
+        resetExperiments();
+        updateScene();
+    }
+
+    function updateScene() {
+        const data = springData();
+        const springHeight = data.springHeight + stretchPx();
+        const springBottom = SPRING_Y + springHeight;
+
+        clampImg.src = `pins/clamp${appliedStiffness}.png`;
+        springImg.src = `pins/spring${appliedStiffness}.png`;
+        springImg.style.width = `${data.springWidth}px`;
+        springImg.style.height = `${springHeight}px`;
+        springImg.style.left = `${SPRING_X}px`;
+        springImg.style.top = `${SPRING_Y}px`;
+
+        hookImg.style.left = `${HOOK_X}px`;
+        hookImg.style.top = `${springBottom}px`;
+
+        scene.querySelectorAll(".scene-weight").forEach((node) => node.remove());
+        if (currentWeightCount <= 0) return;
+
+        for (let index = 0; index < currentWeightCount; index += 1) {
+            const weight = document.createElement("img");
+            weight.className = "scene-weight";
+            weight.src = "pins/weight.png";
+            weight.alt = "";
+            weight.style.left = `${WEIGHT_X}px`;
+            weight.style.top = `${springBottom + WEIGHT_OFFSET_Y + index * WEIGHT_SPACING}px`;
+            scene.appendChild(weight);
+        }
+    }
+
+    function updateStatus() {
+        statusText.textContent = `Грузов: ${currentWeightCount} | Длина пружины: ${lengthCm(currentWeightCount).toFixed(1)} см | F = ${forceN(currentWeightCount).toFixed(2)} Н`;
+    }
+
+    function addExperiment(count) {
+        if (count === 0) return;
+
+        const xM = stretchCm(count) / 100;
+        const lM = lengthCm(count) / 100;
+        const mg = forceN(count);
+        experiments[count] = {
+            m: count * MASS_PER_WEIGHT,
+            mg,
+            l: lM,
+            x: xM,
+            k: mg / xM
+        };
+    }
+
+    function kStats() {
+        const values = Object.values(experiments).map((item) => item.k);
+        if (!values.length) return { avg: 0, delta: 0 };
+        const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+        return { avg, delta: avg * EPSILON_K };
+    }
+
+    function renderTable() {
+        const stats = kStats();
+        tableBody.innerHTML = "";
+
+        for (let row = 0; row <= MAX_WEIGHTS; row += 1) {
+            const tr = document.createElement("tr");
+            if (row === currentWeightCount && row > 0) tr.className = "active-row";
+
+            if (row === 0) {
+                tr.innerHTML = `
+                    <td>0</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>${(springData().l0Cm / 100).toFixed(3)}</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>${stats.avg ? stats.avg.toFixed(0) : ""}</td>
+                    <td>${stats.avg ? EPSILON_K.toFixed(2) : ""}</td>
+                    <td>${stats.delta ? stats.delta.toFixed(0) : ""}</td>
+                `;
+            } else if (experiments[row]) {
+                const exp = experiments[row];
+                tr.innerHTML = `
+                    <td>${row}</td>
+                    <td>${exp.m.toFixed(2)}</td>
+                    <td>${exp.mg.toFixed(2)}</td>
+                    <td>${exp.l.toFixed(3)}</td>
+                    <td>${exp.x.toFixed(3)}</td>
+                    <td>${exp.k.toFixed(0)}</td>
+                    <td>${stats.avg.toFixed(0)}</td>
+                    <td>${EPSILON_K.toFixed(2)}</td>
+                    <td>${stats.delta.toFixed(0)}</td>
+                `;
+            } else {
+                tr.innerHTML = `<td>${row}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>`;
+            }
+
+            tableBody.appendChild(tr);
+        }
+    }
+
+    function clearGraph() {
+        graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+        graphCtx.fillStyle = "#ffffff";
+        graphCtx.fillRect(0, 0, graphCanvas.width, graphCanvas.height);
+        graphCtx.strokeStyle = "#d1d5db";
+        graphCtx.lineWidth = 1;
+        graphCtx.strokeRect(50, 25, graphCanvas.width - 80, graphCanvas.height - 70);
+        graphCtx.fillStyle = "#111827";
+        graphCtx.font = "16px Times New Roman";
+        graphCtx.fillText("График зависимости Fупр = f(l)", 250, 20);
+        graphCtx.fillText("l, м", graphCanvas.width - 40, graphCanvas.height - 36);
+        graphCtx.save();
+        graphCtx.translate(18, 145);
+        graphCtx.rotate(-Math.PI / 2);
+        graphCtx.fillText("Fупр, Н", 0, 0);
+        graphCtx.restore();
+    }
+
+    function buildGraph() {
+        const points = Object.values(experiments).sort((a, b) => a.l - b.l);
+        if (points.length < MAX_WEIGHTS) {
+            window.alert("Для построения графика нужно провести все 5 испытаний.");
+            return;
+        }
+
+        clearGraph();
+        const left = 50;
+        const top = 25;
+        const width = graphCanvas.width - 80;
+        const height = graphCanvas.height - 70;
+        const lMin = Math.min(...points.map((point) => point.l));
+        const lMax = Math.max(...points.map((point) => point.l));
+        const fMax = Math.max(...points.map((point) => point.mg)) * 1.12;
+
+        function xScale(value) {
+            return left + ((value - lMin) / (lMax - lMin || 1)) * width;
+        }
+
+        function yScale(value) {
+            return top + height - (value / fMax) * height;
+        }
+
+        graphCtx.strokeStyle = "#2563eb";
+        graphCtx.lineWidth = 2;
+        graphCtx.beginPath();
+        points.forEach((point, index) => {
+            const x = xScale(point.l);
+            const y = yScale(point.mg);
+            if (index === 0) graphCtx.moveTo(x, y);
+            else graphCtx.lineTo(x, y);
+        });
+        graphCtx.stroke();
+
+        graphCtx.fillStyle = "#a11a05";
+        points.forEach((point) => {
+            graphCtx.beginPath();
+            graphCtx.arc(xScale(point.l), yScale(point.mg), 5, 0, Math.PI * 2);
+            graphCtx.fill();
+        });
+
+        const stats = kStats();
+        intervalText.textContent = `Доверительный интервал для k:\n${(stats.avg - stats.delta).toFixed(0)} ≤ k ≤ ${(stats.avg + stats.delta).toFixed(0)} Н/м\n\nРезультат: k = ${stats.avg.toFixed(0)} ± ${stats.delta.toFixed(0)} Н/м`;
+    }
+
+    function acceptWeights() {
+        currentWeightCount = clampCount(weightInput.value);
+        setWeightInput(currentWeightCount);
+        addExperiment(currentWeightCount);
+        updateScene();
+        updateStatus();
+        renderTable();
+    }
+
+    function resetExperiments() {
+        experiments = {};
+        currentWeightCount = 0;
+        setWeightInput(0);
+        updateScene();
+        updateStatus();
+        renderTable();
+        clearGraph();
+        intervalText.textContent = "Доверительный интервал для k:\nПоявится после проведения всех 5 испытаний и построения графика.\n\nРезультат: k = kср ± Δkср";
+    }
+
+    function stepWeight(delta) {
+        const next = clampCount(weightInput.value) + delta;
+        setWeightInput(next);
+        acceptWeights();
+    }
+
+    function openDescription() {
+        fetch("lab_description.txt")
+            .then((response) => response.ok ? response.text() : Promise.reject())
+            .then((text) => {
+                descriptionText.textContent = text.trim() || descriptionText.textContent;
+                modal.style.display = "flex";
+            })
+            .catch(() => {
+                modal.style.display = "flex";
+            });
+    }
+
+    document.getElementById("minusBtn").addEventListener("click", () => stepWeight(-1));
+    document.getElementById("plusBtn").addEventListener("click", () => stepWeight(1));
+    document.getElementById("acceptBtn").addEventListener("click", acceptWeights);
+    document.getElementById("buildGraphBtn").addEventListener("click", buildGraph);
+    document.getElementById("infoBtn").addEventListener("click", openDescription);
+    document.getElementById("modalCloseBtn").addEventListener("click", () => modal.style.display = "none");
+    modal.addEventListener("click", (event) => {
+        if (event.target === modal) modal.style.display = "none";
+    });
+    weightInput.addEventListener("change", () => setWeightInput(weightInput.value));
+    applyStiffnessBtn.addEventListener("click", applyStiffness);
+
+    buildStiffnessButtons();
+    setWeightInput(0);
+    updateScene();
+    updateStatus();
+    renderTable();
+    clearGraph();
+</script>
+</body>
+</html>
